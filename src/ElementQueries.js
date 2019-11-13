@@ -31,6 +31,10 @@
         //association map to identify which selector belongs to a element from the animationstart event.
         var idToSelectorMapping = [];
 
+        var readStyleSheets = [];
+
+        var initialized = false;
+
         /**
          *
          * @param element
@@ -397,53 +401,58 @@
          * Searches all css rules and setups the event listener to all elements with element query rules..
          */
         this.init = function () {
-            var animationStart = 'animationstart';
-            if (typeof document.documentElement.style['webkitAnimationName'] !== 'undefined') {
-                animationStart = 'webkitAnimationStart';
-            } else if (typeof document.documentElement.style['MozAnimationName'] !== 'undefined') {
-                animationStart = 'mozanimationstart';
-            } else if (typeof document.documentElement.style['OAnimationName'] !== 'undefined') {
-                animationStart = 'oanimationstart';
+            if (!initialized) {
+              var animationStart = 'animationstart';
+              if (typeof document.documentElement.style['webkitAnimationName'] !== 'undefined') {
+                  animationStart = 'webkitAnimationStart';
+              } else if (typeof document.documentElement.style['MozAnimationName'] !== 'undefined') {
+                  animationStart = 'mozanimationstart';
+              } else if (typeof document.documentElement.style['OAnimationName'] !== 'undefined') {
+                  animationStart = 'oanimationstart';
+              }
+
+              document.body.addEventListener(animationStart, function (e) {
+                  var element = e.target;
+                  var styles = element && window.getComputedStyle(element, null);
+                  var animationName = styles && styles.getPropertyValue('animation-name');
+                  var requiresSetup = animationName && (-1 !== animationName.indexOf('element-queries'));
+
+                  if (requiresSetup) {
+                      element.elementQueriesSensor = new ResizeSensor(element, function () {
+                          if (element.elementQueriesSetupInformation) {
+                              element.elementQueriesSetupInformation.call();
+                          }
+                      });
+
+                      var sensorStyles = window.getComputedStyle(element.resizeSensor, null);
+                      var id = sensorStyles.getPropertyValue('min-width');
+                      id = parseInt(id.replace('px', ''));
+                      setupElement(e.target, idToSelectorMapping[id]);
+                  }
+              });
+
+              if (!defaultCssInjected) {
+                  cssStyleElement = document.createElement('style');
+                  cssStyleElement.type = 'text/css';
+                  cssStyleElement.innerHTML = '[responsive-image] > img, [data-responsive-image] {overflow: hidden; padding: 0; } [responsive-image] > img, [data-responsive-image] > img {width: 100%;}';
+
+                  //safari wants at least one rule in keyframes to start working
+                  cssStyleElement.innerHTML += '\n@keyframes element-queries { 0% { visibility: inherit; } }';
+                  document.getElementsByTagName('head')[0].appendChild(cssStyleElement);
+                  defaultCssInjected = true;
+              }
+
+              initialized = true;
             }
 
-            document.body.addEventListener(animationStart, function (e) {
-                var element = e.target;
-                var styles = element && window.getComputedStyle(element, null);
-                var animationName = styles && styles.getPropertyValue('animation-name');
-                var requiresSetup = animationName && (-1 !== animationName.indexOf('element-queries'));
-
-                if (requiresSetup) {
-                    element.elementQueriesSensor = new ResizeSensor(element, function () {
-                        if (element.elementQueriesSetupInformation) {
-                            element.elementQueriesSetupInformation.call();
-                        }
-                    });
-
-                    var sensorStyles = window.getComputedStyle(element.resizeSensor, null);
-                    var id = sensorStyles.getPropertyValue('min-width');
-                    id = parseInt(id.replace('px', ''));
-                    setupElement(e.target, idToSelectorMapping[id]);
-                }
-            });
-
-            if (!defaultCssInjected) {
-                cssStyleElement = document.createElement('style');
-                cssStyleElement.type = 'text/css';
-                cssStyleElement.innerHTML = '[responsive-image] > img, [data-responsive-image] {overflow: hidden; padding: 0; } [responsive-image] > img, [data-responsive-image] > img {width: 100%;}';
-
-                //safari wants at least one rule in keyframes to start working
-                cssStyleElement.innerHTML += '\n@keyframes element-queries { 0% { visibility: inherit; } }';
-                document.getElementsByTagName('head')[0].appendChild(cssStyleElement);
-                defaultCssInjected = true;
-            }
-
-            for (var i = 0, j = document.styleSheets.length; i < j; i++) {
+            let newStyleSheets = Object.values(document.styleSheets).filter(styleSheet => !readStyleSheets.includes(styleSheet));
+            readStyleSheets = [...readStyleSheets, ...newStyleSheets];
+            for (let styleSheet of newStyleSheets) {
                 try {
-                    if (document.styleSheets[i].href && 0 === document.styleSheets[i].href.indexOf('file://')) {
-                        console.warn("CssElementQueries: unable to parse local css files, " + document.styleSheets[i].href);
+                    if (styleSheet.href && 0 === styleSheet.href.indexOf('file://')) {
+                        console.warn("CssElementQueries: unable to parse local css files, " + styleSheet.href);
                     }
-
-                    readRules(document.styleSheets[i].cssRules || document.styleSheets[i].rules || document.styleSheets[i].cssText);
+                    readRules(styleSheet.cssRules || styleSheet.rules || styleSheet.cssText);
                 } catch (e) {
                 }
             }
