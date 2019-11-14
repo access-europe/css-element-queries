@@ -1,7 +1,6 @@
 # CSS Element Queries
 
-
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/marcj/css-element-queries?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+This is a fork of library created by Marc J. Schmidt (link to original library: http://marcj.github.io/css-element-queries/) which is suitable for applications using View Encapsulation feature. Current implementation allows to call init() function multiple times without duplicating style rulesets every single time.
 
 Element Queries is a polyfill adding support for element based media-queries to all new browsers (incl. IE7+).
 It allows not only to define media-queries based on window-size but also adds 'media-queries' functionality depending on element (any selector supported)

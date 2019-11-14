@@ -1,25 +1,18 @@
 {
-  "name": "css-element-queries",
-  "version": "1.2.1",
-  "description": "CSS-Element-Queries Polyfill. Proof-of-concept for high-speed element dimension/media queries in valid css.",
+  "name": "@access-europe/ngx-css-element-queries",
+  "version": "1.2.1-ngx",
+  "description": "CSS-Element-Queries Polyfill for Angular. Proof-of-concept for high-speed element dimension/media queries in valid css.",
   "main": "index.js",
-  "typings": "css-element-queries.d.ts",
+  "typings": "ngx-css-element-queries.d.ts",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:marcj/css-element-queries.git"
-  },
-  "author": "Marc J. Schmidt",
+  "author": "Piotr Chojnacki",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/marcj/css-element-queries/issues"
-  },
-  "homepage": "https://github.com/marcj/css-element-queries",
+  "homepage": "https://github.com/access-europe/ngx-css-element-queries",
   "devDependencies": {
     "grunt": "^0.4.5",
     "grunt-bump": "^0.3.1"
